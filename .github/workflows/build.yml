@@ -2,8 +2,8 @@ name: Build iOS bindings and upload
 
 on:
     push:
-        branches:
-            - main
+        tags:
+            - "v*"
 
 jobs:
     build:
@@ -17,8 +17,15 @@ jobs:
               run: |
                   CONFIGURATION=release cargo run --bin ios IOS_ARCHS=aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios
 
-            - name: Upload iOS bindings
-              uses: actions/upload-artifact@v4
+            - name: Create ZIP of xcframework
+              run: |
+                  zip -r MoproiOSBindings.zip MoproiOSBindings
+
+            - name: Upload release asset to GitHub Release
+              uses: softprops/action-gh-release@v2
               with:
-                  name: zkemail-ios-bindings
-                  path: ./MoproiOSBindings
+                  tag_name: ${{ github.ref_name }}
+                  name: MoproiOSBindings.zip
+                  files: ./MoproiOSBindings.zip
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
